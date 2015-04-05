@@ -12,19 +12,26 @@ class Creature():
     PredatorEvasionChance = .5          #0-1 probability
     CauseOfDeath = ''
     DayOfDeath = -1
+    CaloriesProvided = 0
     
     IsPregnant = False
     PregnancyDuration = 0               #measured in days
+    DayOfConception = 0
     MinimumReproductiveAge = 0          #measured in days
     ReproductionChance = 0              #0-1 probability
 
+    IsHungry = True
     PreyCreatures = []                  #list of CreatureTypes that this CreatureType can eat
     PreysOnLivingCreatures = True
+    DailyCaloriesNeeded = 0
+    DailyCaloriesConsumed = 0
 
     def GetOlder(self):
         if self.IsAlive == True:
             self.StarvationTime = self.StarvationTime - 1
             self.Age = self.Age+1
+            self.DailyCaloriesConsumed = 0
+            self.IsHungry = True
             if self.StarvationTime <= 0:
                 self.Die('Starvation')
             elif self.NaturalLifespan <= self.Age:
@@ -39,6 +46,13 @@ class Creature():
         self.CauseOfDeath = cause
         self.DayOfDeath = self.DayOfBirth + self.Age
 
+    def GetPregnant(self):
+        self.IsPregnant = True
+        self.DayOfConception = self.DayOfBirth + self.Age
+
+    def GiveBirth(self):
+        self.IsPregnant = False
+        
     def Status(self):
         if self.Age == 0 and self.IsAlive == True:
             return self.CreatureType + ' born today!'
@@ -59,15 +73,20 @@ class Human(Creature):
         self.NaturalLifespan = 22000
         self.StarvationTime = 4
         self.AccidentalDeathChance = .001
-
-        self.PregnancyDuration = 300
-        self.MinimumReproductiveAge = 6600
+        self.CaloriesProvided = 10000
+        
+        self.PregnancyDuration = 10 #300
+        self.MinimumReproductiveAge =  10 #6600
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Big Fish', 'Small Fish']
+        self.DailyCaloriesNeeded = 1200
 
-    def Eat(self):
-        self.StarvationTime = 4
+    def Eat(self, calories):
+        self.DailyCaloriesConsumed = self.DailyCaloriesConsumed + calories
+        if self.DailyCaloriesConsumed >= self.DailyCaloriesNeeded:
+            self.StarvationTime = 4
+            self.IsHungry = False
 
 class BigFish(Creature):
 
@@ -77,15 +96,20 @@ class BigFish(Creature):
         self.NaturalLifespan = 3700
         self.StarvationTime = 2
         self.AccidentalDeathChance = .01
+        self.CaloriesProvided = 1000
 
-        self.PregnancyDuration = 90
-        self.MinimumReproductiveAge = 400
+        self.PregnancyDuration = 4 #90
+        self.MinimumReproductiveAge = 3 #400
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Small Fish']
+        self.DailyCaloriesNeeded = 200
 
-    def Eat(self):
-        self.StarvationTime = 2
+    def Eat(self, calories):
+        self.DailyCaloriesConsumed = self.DailyCaloriesConsumed + calories
+        if self.DailyCaloriesConsumed >= self.DailyCaloriesNeeded:
+            self.StarvationTime = 2
+            self.IsHungry = False
 
 class SmallFish(Creature):
 
@@ -95,15 +119,20 @@ class SmallFish(Creature):
         self.NaturalLifespan = 2000
         self.StarvationTime = 2
         self.AccidentalDeathChance = .01
+        self.CaloriesProvided = 300
 
-        self.PregnancyDuration = 50
-        self.MinimumReproductiveAge = 200
+        self.PregnancyDuration = 3 #50
+        self.MinimumReproductiveAge = 2 #200
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Microbe']
+        self.DailyCaloriesNeeded = 10
 
-    def Eat(self):
-        self.StarvationTime = 2
+    def Eat(self, calories):
+        self.DailyCaloriesConsumed = self.DailyCaloriesConsumed + calories
+        if self.DailyCaloriesConsumed >= self.DailyCaloriesNeeded:
+            self.StarvationTime = 2
+            self.IsHungry = False
 
 class Microbe(Creature):
 
@@ -111,15 +140,20 @@ class Microbe(Creature):
         self.CreatureType = 'Microbe'
         self.DayOfBirth = day
         self.NaturalLifespan = 100
-        self.StarvationTime = 5
+        self.StarvationTime = 25
         self.AccidentalDeathChance = .01
+        self.CaloriesProvided = 2
 
-        self.PregnancyDuration = 5
-        self.MinimumReproductiveAge = 5
+        self.PregnancyDuration = 2
+        self.MinimumReproductiveAge = 3 #5
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Microbe', 'Small Fish', 'Big Fish', 'Human']
         self.PreysOnLivingCreatures = False
+        self.DailyCaloriesNeeded = 2
 
-    def Eat(self):
-        self.StarvationTime = 5
+    def Eat(self, calories):
+        self.DailyCaloriesConsumed = self.DailyCaloriesConsumed + calories
+        if self.DailyCaloriesConsumed >= self.DailyCaloriesNeeded:
+            self.StarvationTime = 25
+            self.IsHungry = False
