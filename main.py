@@ -3,7 +3,7 @@ import timeit
 import time
 import configparser
 import os
-from CreatureClasses import *
+from classfiles.CreatureClasses import *
 
 
 class EcoSim():
@@ -16,14 +16,9 @@ class EcoSim():
 
     def __init__(self):
         print('EcoSim started on', time.strftime('%b %d, %Y at %I:%M:%S %p'))
+        print('Program running from', os.path.dirname(__file__))
         config = configparser.ConfigParser()
-        dir = os.path.dirname(__file__)
-        print(dir)
-        filename = os.path.join(dir, 'Initialization','config.conf')
-        print(filename)
-        #print(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Initialization', 'config.ini'))
-        #config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Initialization', 'config.ini'))
-        config.read(filename)
+        config.read('./conf/creaturepopulations.conf')
         IntialBirthPopulations = config['INITIAL BIRTH POPULATIONS']
 
         for count in range(0,int(IntialBirthPopulations['MicrobeCount'])): #30000
