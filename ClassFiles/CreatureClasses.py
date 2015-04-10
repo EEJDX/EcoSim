@@ -98,8 +98,8 @@ class BigFish(Creature):
         self.AccidentalDeathChance = .01
         self.CaloriesProvided = 1000
 
-        self.PregnancyDuration = 4 #90
-        self.MinimumReproductiveAge = 3 #400
+        self.PregnancyDuration = 5 #90
+        self.MinimumReproductiveAge = 4 #400
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Small Fish']
@@ -142,10 +142,11 @@ class Microbe(Creature):
         self.NaturalLifespan = 100
         self.StarvationTime = 25
         self.AccidentalDeathChance = .01
-        self.CaloriesProvided = 2
+        self.PredatorEvasionChance = .1
+        self.CaloriesProvided = 4
 
         self.PregnancyDuration = 2
-        self.MinimumReproductiveAge = 3 #5
+        self.MinimumReproductiveAge = 2 #5
         self.ReproductionChance = .8
 
         self.PreyCreatures = ['Microbe', 'Small Fish', 'Big Fish', 'Human']

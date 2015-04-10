@@ -1,6 +1,8 @@
 import random
 import timeit
 import time
+import configparser
+import os
 from CreatureClasses import *
 
 
@@ -8,24 +10,37 @@ class EcoSim():
     CreatureList = []
     DayCount = 0
     AirTemperature = 75
+    RunTimer = 0
     FoodTimer = 0
     SexTimer = 0
 
     def __init__(self):
         print('EcoSim started on', time.strftime('%b %d, %Y at %I:%M:%S %p'))
-        for count in range(0,16000):
+        config = configparser.ConfigParser()
+        dir = os.path.dirname(__file__)
+        print(dir)
+        filename = os.path.join(dir, 'Initialization','config.conf')
+        print(filename)
+        #print(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Initialization', 'config.ini'))
+        #config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Initialization', 'config.ini'))
+        config.read(filename)
+        IntialBirthPopulations = config['INITIAL BIRTH POPULATIONS']
+
+        for count in range(0,int(IntialBirthPopulations['MicrobeCount'])): #30000
             x = Microbe(self.DayCount)
             self.CreatureList.append(x)
-        for count in range(0,400):
+        for count in range(0,int(IntialBirthPopulations['SmallFishCount'])): #800
             x = SmallFish(self.DayCount)
             self.CreatureList.append(x)
-        for count in range(0,40):
+        for count in range(0,int(IntialBirthPopulations['BigFishCount'])):   #50
             x = BigFish(self.DayCount)
             self.CreatureList.append(x)
-        for count in range(0,2):
+        for count in range(0,int(IntialBirthPopulations['HumanCount'])): #3
             x = Human(self.DayCount)
             self.CreatureList.append(x)
-        self.RunTwoMonths()
+        rt = timeit.Timer(lambda: self.RunSimForXDays(5))
+        self.RunTimer = rt.timeit(1)
+        print('Simulation ran for a total of', self.RunTimer, 'seconds')
 
     def GetCreatureTally(self):
         TypeList = ['Microbe', 'Small Fish', 'Big Fish', 'Human']
@@ -51,8 +66,8 @@ class EcoSim():
         for creature in self.CreatureList:
             creature.GetOlder()
 
-    def RunTwoMonths(self):
-        for count in range(0,61):
+    def RunSimForXDays(self, DaysToRun):
+        for count in range(0,DaysToRun):
             LivingCreatureList = [c for c in self.CreatureList if c.IsAlive == True]
             if len(LivingCreatureList) > 0:
                 print('Day', self.DayCount, 'summary:')
@@ -68,25 +83,36 @@ class EcoSim():
         random.shuffle(self.CreatureList)
         self.FoodTimer = 0
         self.SexTimer = 0
+        OptimizationList = [p for p in self.CreatureList if p.IsAlive == False and p.CauseOfDeath != 'Predation']
         for creature in self.CreatureList:
-            if creature.IsAlive == True:
-                ft = timeit.Timer(lambda: self.EatSomething(creature))
-                self.FoodTimer += ft.timeit(1)
+            if creature.CreatureType == 'Microbe':
+                if len(OptimizationList) > 0:
+                    if creature.IsAlive == True:
+                        ft = timeit.Timer(lambda: self.EatSomething(creature))
+                        self.FoodTimer += ft.timeit(1)
+            else:
+                if creature.IsAlive == True:
+                    ft = timeit.Timer(lambda: self.EatSomething(creature))
+                    self.FoodTimer += ft.timeit(1)
             if creature.IsAlive == True:
                 st = timeit.Timer(lambda: self.Reproduce(creature))
                 self.SexTimer += st.timeit(1)
-        
+                
     def EatSomething(self, hungryCreature):
-        PreyList = [p for p in self.CreatureList if p.CreatureType in hungryCreature.PreyCreatures and p.IsAlive == hungryCreature.PreysOnLivingCreatures and p.CauseOfDeath != 'Predation' and p != hungryCreature]
-        while hungryCreature.IsHungry == True and len(PreyList) > 0:
+        PreyList = [p for p in self.CreatureList if p.CreatureType in hungryCreature.PreyCreatures and
+                    p.IsAlive == hungryCreature.PreysOnLivingCreatures and
+                    p.CauseOfDeath != 'Predation' and
+                    p != hungryCreature]
+        AttemptedPredations = 0
+        while hungryCreature.IsHungry == True and len(PreyList) > 0 and AttemptedPredations < 10:
             for creature in PreyList:
-                if hungryCreature.IsHungry == True: 
+                if hungryCreature.IsHungry == True and AttemptedPredations < 10: 
                     DiceRoll = random.uniform(0, 1)
-                    if DiceRoll <= creature.PredatorEvasionChance:
+                    AttemptedPredations += 1
+                    if DiceRoll > creature.PredatorEvasionChance:
                         hungryCreature.Eat(creature.CaloriesProvided)
                         creature.Die('Predation')
                         PreyList.remove(creature)
-                                      
                 else:
                     break
 
